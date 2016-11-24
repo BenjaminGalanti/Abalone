@@ -25,7 +25,7 @@ public class AbaloneBoard extends Pane {
         buildCells();
         GameLogic.getInstance().setNbPlayer(2);
         GameLogic.getInstance().initPlayerCells(_board);
-        _currentPlayer = Player.BLACK;
+        _currentPlayer = GameLogic.getInstance().getNextPlayer(null);
         showGrid();
     }
 
@@ -37,8 +37,8 @@ public class AbaloneBoard extends Pane {
     }
 
     public void resetGame() {
-        _currentPlayer = Player.BLACK;
-    }
+        _currentPlayer = GameLogic.getInstance().getNextPlayer(null);
+        }
 
     public void placePiece(final double x, final double y) {
         Cell cell = new Cell();

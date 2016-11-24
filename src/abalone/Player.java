@@ -13,8 +13,8 @@ public enum Player {
 //    YELLOW(Color.YELLOW, "player yellow"),
 //    GREEN(Color.GREEN, "player green");
     //TODO Just for debug
-    BLACK(Color.BLACK, "bk", "\u001B[35m"),
-    WHITE(Color.WHITE, "wh", "\u001B[36m"),
+    BLACK(Color.BLACK, "pl", "\u001B[35m"),
+    WHITE(Color.WHITE, "ci", "\u001B[36m"),
     RED(Color.RED, "rd", "\u001B[31m"),
     BLUE(Color.BLUE, "bl", "\u001B[34m"),
     YELLOW(Color.YELLOW, "yw", "\u001B[33m"),

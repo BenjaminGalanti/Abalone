@@ -4,8 +4,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-import java.util.Arrays;
-
 /**
  * Created by benja on 22/11/2016.
  */
@@ -20,11 +18,13 @@ public class Cell extends Pane {
         _shape = new Circle();
         _shape.setFill(Color.GRAY);
         getChildren().add(_shape);
+        _player = null;
     }
 
     public void resetCell() {
         getChildren().remove(_piece);
         _piece = null;
+        _player = null;
     }
 
     public void setPlayer(Player player) {
