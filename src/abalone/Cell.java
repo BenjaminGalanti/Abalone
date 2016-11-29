@@ -3,6 +3,7 @@ package abalone;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Polygon;
 
 /**
  * Created by benja on 22/11/2016.
@@ -15,10 +16,25 @@ public class Cell extends Pane {
             _neighbours[i] = null;
         }
 
-        _shape = new Circle();
-        _shape.setFill(Color.GRAY);
-        getChildren().add(_shape);
+        draw_hex_corner(0, 0, 40);
         _player = null;
+    }
+
+    public void draw_hex_corner(double x, double y, double size) {
+        double[] tab = new double[12];
+        int i = 0;
+        while (i < 12) {
+            double angle_deg = (double) (30 * i + 30);
+            double angle_rad = Math.PI / 180 * angle_deg;
+            tab[i] = x + size * Math.cos(angle_rad);
+            tab[i + 1] = y + size * Math.sin(angle_rad);
+            i += 2;
+        }
+
+        Polygon polygon = new Polygon(tab);
+        polygon.setFill(Color.BLUE);
+        polygon.setStroke(Color.HOTPINK);
+        getChildren().addAll(polygon);
     }
 
     public void resetCell() {
@@ -40,9 +56,6 @@ public class Cell extends Pane {
     @Override
     public void resize(double width, double height) {
         super.resize(width, height);
-        _shape.setCenterX(30);
-        _shape.setCenterY(30);
-        _shape.setRadius(30);
         if (_piece != null) {
             _piece.resize(60, 60);
         }
@@ -78,6 +91,6 @@ public class Cell extends Pane {
 
     private Cell[] _neighbours;
     private Piece _piece;
-    private Circle _shape;
+    private Polygon _shape;
     private Player _player;
 }

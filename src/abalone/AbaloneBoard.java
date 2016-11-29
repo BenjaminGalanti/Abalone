@@ -5,28 +5,65 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 
+import javax.swing.text.Position;
+
 /**
  * Created by benja on 22/11/2016.
  */
 public class AbaloneBoard extends Pane {
     public AbaloneBoard() {
         _back = new Rectangle();
-        _back.setFill(Color.GRAY);
-        _boardShape = new Polygon(
-                225.0, 650.0,
-                575.0, 650.0,
-                800.0, 320.0,
-                575.0, 0.0,
-                225.0, 0.0,
-                0.0, 320.0);
-        _boardShape.setFill(Color.DARKRED);
+        _back.setFill(Color.BLUEVIOLET);
 
-        getChildren().addAll(_back, _boardShape);
+        getChildren().addAll(_back);
+
+        drawMap();
+
+
         buildCells();
         GameLogic.getInstance().setNbPlayer(2);
         GameLogic.getInstance().initPlayerCells(_board);
         _currentPlayer = GameLogic.getInstance().getNextPlayer(null);
         showGrid();
+    }
+
+    private void drawMap() {
+        int offset = 3;
+        double size = 40;
+        double width = Math.sqrt((size * size - (size / 2.0) * (size / 2.0))) * 2;
+        for (int i = 0; i < 9; ++i) {
+            for (int j = 0; j < 8 - offset; ++j) {
+                draw_hex_corner(100 + offset * width / 2 + j * width, size + (3 * size / 2) * i, size);
+            }
+            if (i < 4)
+                --offset;
+            else
+                ++offset;
+        }
+    }
+
+    public void draw_hex_corner(double x, double y, double size) {
+        double[] tab = new double[12];
+        int i = 0;
+        while (i < 12) {
+            double angle_deg = (double) (30 * i + 30);
+            double angle_rad = Math.PI / 180 * angle_deg;
+            tab[i] = x + size * Math.cos(angle_rad);
+            tab[i + 1] = y + size * Math.sin(angle_rad);
+            i += 2;
+        }
+
+        Polygon polygon = new Polygon(tab);
+        polygon.setFill(Color.BLUE);
+        polygon.setStroke(Color.HOTPINK);
+        getChildren().addAll(polygon);
+    }
+
+    private void print(double tab[]) {
+        System.out.println("print");
+        for (int i = 0; i < 12; ++i) {
+            System.out.println(tab[i]);
+        }
     }
 
     @Override
