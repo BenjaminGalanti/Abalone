@@ -2,7 +2,6 @@ package abalone;
 
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 
 /**
@@ -37,16 +36,15 @@ public class Cell extends Pane {
         getChildren().addAll(polygon);
     }
 
-    public void resetCell() {
-        getChildren().remove(_piece);
-        _piece = null;
-        _player = null;
-    }
-
     public void setPlayer(Player player) {
         _player = player;
-        _piece = new Piece(player);
-        getChildren().add(_piece);
+        if (_piece != null) {
+            getChildren().remove(_piece);
+        }
+        if (player != null) {
+            _piece = new Piece(player);
+            getChildren().add(_piece);
+        }
     }
 
     public Player getPlayer() {
