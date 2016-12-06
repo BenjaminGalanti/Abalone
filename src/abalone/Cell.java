@@ -15,25 +15,21 @@ public class Cell extends Pane {
             _neighbours[i] = null;
         }
 
-        draw_hex_corner(0, 0, 40);
+        draw_hexagon(710.0 / 14.0);
         _player = null;
     }
 
-    public void draw_hex_corner(double x, double y, double size) {
-        double[] tab = new double[12];
-        int i = 0;
-        while (i < 12) {
-            double angle_deg = (double) (30 * i + 30);
+    public void draw_hexagon(double size) {
+        _shape = new Polygon();
+        _shape.setFill(Color.CYAN);
+        _shape.setStroke(Color.HOTPINK);
+        for (int i = 0; i < 6; i++) {
+            double angle_deg = (double) (60 * i + 30);
             double angle_rad = Math.PI / 180 * angle_deg;
-            tab[i] = x + size * Math.cos(angle_rad);
-            tab[i + 1] = y + size * Math.sin(angle_rad);
-            i += 2;
+            _shape.getPoints().addAll(size * Math.cos(angle_rad), size * Math.sin(angle_rad));
         }
 
-        Polygon polygon = new Polygon(tab);
-        polygon.setFill(Color.BLUE);
-        polygon.setStroke(Color.HOTPINK);
-        getChildren().addAll(polygon);
+        getChildren().addAll(_shape);
     }
 
     public void setPlayer(Player player) {
@@ -51,11 +47,16 @@ public class Cell extends Pane {
         return _player;
     }
 
+    public void resetCell() {
+        setPlayer(null);
+        setSelected(false);
+    }
+
     @Override
     public void resize(double width, double height) {
         super.resize(width, height);
         if (_piece != null) {
-            _piece.resize(60, 60);
+            _piece.resize(width, height);
         }
     }
 
@@ -75,14 +76,36 @@ public class Cell extends Pane {
     @Override
     public String toString() {
         String dir[] = {
-                getNeighbour(Direction.TOP_LEFT) != null ? getNeighbour(Direction.TOP_LEFT).num : "NULL",
-                getNeighbour(Direction.TOP_RIGHT) != null ? getNeighbour(Direction.TOP_RIGHT).num : "NULL",
-                getNeighbour(Direction.LEFT) != null ? getNeighbour(Direction.LEFT).num : "NULL",
-                getNeighbour(Direction.RIGHT) != null ? getNeighbour(Direction.RIGHT).num : "NULL",
-                getNeighbour(Direction.BOTTOM_LEFT) != null ? getNeighbour(Direction.BOTTOM_LEFT).num : "NULL",
-                getNeighbour(Direction.BOTTOM_RIGHT) != null ? getNeighbour(Direction.BOTTOM_RIGHT).num : "NULL"
+                getNeighbour(Direction.TOP_LEFT) != null ? getNeighbour(Direction.TOP_LEFT).num : "XXXXX",
+                getNeighbour(Direction.TOP_RIGHT) != null ? getNeighbour(Direction.TOP_RIGHT).num : "XXXXX",
+                getNeighbour(Direction.LEFT) != null ? getNeighbour(Direction.LEFT).num : "XXXXX",
+                getNeighbour(Direction.RIGHT) != null ? getNeighbour(Direction.RIGHT).num : "XXXXX",
+                getNeighbour(Direction.BOTTOM_LEFT) != null ? getNeighbour(Direction.BOTTOM_LEFT).num : "XXXXX",
+                getNeighbour(Direction.BOTTOM_RIGHT) != null ? getNeighbour(Direction.BOTTOM_RIGHT).num : "XXXXX"
         };
         return "   " + dir[0] + "  " + dir[1] + "\n " + dir[2] + " " + num + " " + dir[3] + "\n  " + dir[4] + "   " + dir[5] + "\n";
+    }
+
+    public Direction getDirection(Cell cell) {
+        for (int i = 0; i < 6; i++) {
+            if (_neighbours[i] == cell) {
+                return Direction.values()[i];
+            }
+        }
+        return null;
+    }
+
+    public void setSelected(boolean selected) {
+        _selected = selected;
+        if (_selected) {
+            _shape.setFill(Color.BLANCHEDALMOND);
+        } else {
+            _shape.setFill(Color.CYAN);
+        }
+    }
+
+    public boolean isSelected() {
+        return _selected;
     }
 
     public String num;
@@ -91,4 +114,5 @@ public class Cell extends Pane {
     private Piece _piece;
     private Polygon _shape;
     private Player _player;
+    private boolean _selected;
 }

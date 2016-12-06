@@ -20,7 +20,8 @@ public class AbaloneApplication extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Abalone");
-        primaryStage.setScene(new Scene(_mainLayout, 800, 800));
+        primaryStage.setScene(new Scene(_mainLayout, 1100, 700));
+        primaryStage.setResizable(false);
         primaryStage.show();
     }
 

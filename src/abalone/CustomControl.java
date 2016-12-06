@@ -19,7 +19,7 @@ public class CustomControl extends Control {
         setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
-                _abaloneBoard.placePiece(event.getX(), event.getY());
+                _abaloneBoard.selectCell(event.getX(), event.getY(), event.isControlDown());
             }
         });
 
@@ -28,6 +28,18 @@ public class CustomControl extends Control {
             public void handle(KeyEvent event) {
                 if (event.getCode() == KeyCode.SPACE) {
                     _abaloneBoard.resetGame();
+                } else if (event.getCode() == KeyCode.T) {
+                    _abaloneBoard.move(Direction.TOP_LEFT);
+                } else if (event.getCode() == KeyCode.Y) {
+                    _abaloneBoard.move(Direction.TOP_RIGHT);
+                } else if (event.getCode() == KeyCode.H) {
+                    _abaloneBoard.move(Direction.RIGHT);
+                } else if (event.getCode() == KeyCode.B) {
+                    _abaloneBoard.move(Direction.BOTTOM_RIGHT);
+                } else if (event.getCode() == KeyCode.V) {
+                    _abaloneBoard.move(Direction.BOTTOM_LEFT);
+                } else if (event.getCode() == KeyCode.F) {
+                    _abaloneBoard.move(Direction.LEFT);
                 }
             }
         });

@@ -1,8 +1,8 @@
 package abalone;
 
+import javafx.geometry.Point2D;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 
 /**
@@ -15,59 +15,19 @@ public class AbaloneBoard extends Pane {
 
         getChildren().addAll(_back);
 
-        drawMap();
-
+        _cellHeight = 710.0 / 7.0;
+        _cellWidth = Math.sqrt((Math.pow(_cellHeight / 2, 2) - Math.pow(_cellHeight / 4, 2))) * 2;
         buildCells();
-        System.out.println(_board[0][0]);
+
         GameLogic.getInstance().setBoard(_board);
-        GameLogic.getInstance().setNbPlayer(5);
-        initScores();
+        GameLogic.getInstance().setNbPlayer(2);
         GameLogic.getInstance().initPlayerCells();
+
+        initScores();
+        _selectedCells = new Cell[3];
+        resetSelectedCells();
+
         _currentPlayer = GameLogic.getInstance().getNextPlayer(null);
-        //TODO for debug
-        movePieces(Direction.BOTTOM_RIGHT, _board[1][1], _board[1][2], _board[1][3]);
-        movePieces(Direction.RIGHT, _board[2][2]);
-        movePieces(Direction.RIGHT, _board[2][3]);
-        movePieces(Direction.TOP_LEFT, _board[2][4], _board[2][5]);
-        movePieces(Direction.RIGHT, _board[1][3]);
-        movePieces(Direction.RIGHT, _board[0][3]);
-        movePieces(Direction.BOTTOM_RIGHT, _board[0][4]);
-        movePieces(Direction.BOTTOM_RIGHT, _board[1][5]);
-        movePieces(Direction.BOTTOM_LEFT, _board[0][0]);
-        movePieces(Direction.LEFT, _board[0][1]);
-        movePieces(Direction.BOTTOM_LEFT, _board[0][0]);
-
-        showGrid();
-    }
-
-    private void drawMap() {
-        int offset = 3;
-        double size = 40;
-        double width = Math.sqrt((size * size - (size / 2.0) * (size / 2.0))) * 2;
-        for (int i = 0; i < 9; ++i) {
-            for (int j = 0; j < 8 - offset; ++j) {
-                draw_hex_corner(100 + offset * width / 2 + j * width, size + (3 * size / 2) * i, size);
-            }
-            if (i < 4)
-                --offset;
-            else
-                ++offset;
-        }
-    }
-
-    private void draw_hex_corner(double x, double y, double size) {
-        Polygon polygon = new Polygon();
-        int i = 0;
-        while (i < 6) {
-            double angle_deg = (double) (60 * i + 30);
-            double angle_rad = Math.PI / 180 * angle_deg;
-            polygon.getPoints().addAll(x + size * Math.cos(angle_rad), y + size * Math.sin(angle_rad));
-            i++;
-        }
-
-        polygon.setFill(Color.BLUE);
-        polygon.setStroke(Color.HOTPINK);
-        getChildren().addAll(polygon);
     }
 
     @Override
@@ -83,22 +43,53 @@ public class AbaloneBoard extends Pane {
 
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < rowSize; j++) {
-                _board[i][j].setPlayer(null);
+                _board[i][j].resetCell();
             }
             if (rowSize == 9) { inc = -1; }
             rowSize += inc;
         }
         GameLogic.getInstance().initPlayerCells();
-        System.out.println(_board[0][0]);
         _currentPlayer = GameLogic.getInstance().getNextPlayer(null);
         initScores();
+        resetSelectedCells();
     }
 
-    public void placePiece(final double x, final double y) {
-        Cell cell = new Cell();
-        cell.relocate(x, y);
-        cell.setPlayer(_currentPlayer);
-        getChildren().add(cell);
+    public void selectCell(final double x, final double y, boolean ctrl) {
+        int rowSize = 5;
+        int inc = 1;
+
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < rowSize; j++) {
+                Cell cell = _board[i][j];
+                Point2D point = cell.parentToLocal(x, y);
+                if (Math.sqrt(Math.pow(point.getX(), 2) + Math.pow(point.getY(), 2)) < _cellWidth / 2 && cell.getPlayer() == _currentPlayer) {
+                    if (!ctrl) {
+                        resetSelectedCells();
+                    }
+                    if (cell != _selectedCells[0] && cell != _selectedCells[1] && cell != _selectedCells[2]) {
+                        if (_selectedCells[0] == null) {
+                            cell.setSelected(true);
+                            _selectedCells[0] = cell;
+                        } else if (_selectedCells[1] == null) {
+                            _selectedCellsDirection = _selectedCells[0].getDirection(cell);
+                            if (_selectedCellsDirection != null) {
+                                cell.setSelected(true);
+                                _selectedCells[1] = cell;
+                            }
+                        } else if (_selectedCells[2] == null) {
+                            if (_selectedCells[0].getNeighbour(Direction.values()[(_selectedCellsDirection.ordinal() + 3) % 6]) == cell
+                                    || _selectedCells[1].getNeighbour(_selectedCellsDirection) == cell) {
+                                cell.setSelected(true);
+                                _selectedCells[2] = cell;
+                            }
+                        }
+                    }
+                    return;
+                }
+            }
+            if (rowSize == 9) { inc = -1; }
+            rowSize += inc;
+        }
     }
 
     private void buildCells() {
@@ -115,6 +106,9 @@ public class AbaloneBoard extends Pane {
                 Cell topRight = null;
                 cell.num = String.format("%02d;%02d", i, j); //TODO just debug
 
+                cell.relocate(_cellWidth / 2 + (9 - rowSize) * _cellWidth / 2 + j * _cellWidth, _cellHeight / 2 + (3 * _cellHeight / 4) * i);
+                cell.resize(_cellWidth, _cellHeight);
+                getChildren().add(cell);
                 _board[i][j] = cell;
                 if (inc == 1) {
                     if (i != 0) {
@@ -141,22 +135,37 @@ public class AbaloneBoard extends Pane {
     }
 
     private void movePieces(Direction direction, Cell mandatoryCell, Cell... otherCells) {
+        Player playerPlaying = mandatoryCell.getPlayer();
+
         if (GameLogic.getInstance().canBeMoved(direction, mandatoryCell, otherCells)) {
             if (GameLogic.getInstance().isPieceOut(mandatoryCell, direction)) {
-                GameLogic.getInstance().addScore(mandatoryCell.getPlayer());
+                GameLogic.getInstance().addScore(playerPlaying);
                 //TODO for debug
-                System.out.println(mandatoryCell.getPlayer() + " : " + _scores[mandatoryCell.getPlayer().ordinal()]);
-                if (GameLogic.getInstance().isWinner(mandatoryCell.getPlayer())) {
-                    //TODO for debug
-                    System.out.println(mandatoryCell.getPlayer() + " win the game !");
-                    resetGame();
-                    return;
-                }
+                System.out.println(playerPlaying + " : " + _scores[playerPlaying.ordinal()]);
             }
             pushPiece(mandatoryCell, direction);
             for (Cell otherCell: otherCells) {
                 pushPiece(otherCell, direction);
             }
+            if (GameLogic.getInstance().isWinner(playerPlaying)) {
+                //TODO for debug
+                System.out.println(playerPlaying + " win the game !");
+                return;
+            }
+            _currentPlayer = GameLogic.getInstance().getNextPlayer(_currentPlayer);
+        }
+    }
+
+    public void move(Direction direction) {
+        if (_selectedCells[0] != null) {
+            if (_selectedCells[1] == null) {
+                movePieces(direction, _selectedCells[0]);
+            } else if (_selectedCells[2] == null) {
+                movePieces(direction, _selectedCells[0], _selectedCells[1]);
+            } else {
+                movePieces(direction, _selectedCells[0], _selectedCells[1], _selectedCells[2]);
+            }
+            resetSelectedCells();
         }
     }
 
@@ -178,6 +187,14 @@ public class AbaloneBoard extends Pane {
         for (int i = 0; i < 6; i++) {
             _scores[i] = 0;
         }
+    }
+
+    private void resetSelectedCells() {
+        for (int i = 0; i < 3; i++) {
+            if (_selectedCells[i] != null) _selectedCells[i].setSelected(false);
+            _selectedCells[i] = null;
+        }
+        _selectedCellsDirection = null;
     }
 
     // Debug function
@@ -203,7 +220,10 @@ public class AbaloneBoard extends Pane {
 
     private Player _currentPlayer;
     private Rectangle _back;
-    private Polygon _boardShape;
     private Cell[][] _board;
     private int[] _scores;
+    private double _cellHeight;
+    private double _cellWidth;
+    private Cell[] _selectedCells;
+    private Direction _selectedCellsDirection;
 }
